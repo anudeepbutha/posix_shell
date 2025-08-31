@@ -11,31 +11,28 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <stdio.h>
 
 using namespace std;
 
 string getfilePermissions(mode_t octalcode);
 
 void showlist (vector<string> words) {
-    string directory;
-    int flag1 = 0, flag2 = 0;
-    if (words.size() == 1)
-        directory = ".";
-    else if (words[1] == ".")
-        directory = ".";
-    else if (words[1] == "-a") {
-        flag1 = 1;
-        directory = ".";
-    }
-    else if (words[1] == "..")
-        directory = "..";
-    else if (words[1] == "~") {
-        passwd *userdetails = getpwuid(getuid());
-        directory = userdetails->pw_dir;
-    }
-    else if (words[1] == "-l" || words[1] == "-la" || words[1] == "-al") {
-        directory = ".";
-        flag2 = 1;
+    string directory = ".";
+    int flaga = 0, flagl = 0;
+
+    for (string str: words) {
+        if (str == "-a")
+            flaga = 1;
+        else if (str == "-l")
+            flagl = 1;
+        else if (str == "-al" ||str == "-la") {
+            flaga = 1; flagl = 1;
+        }
+        else if (str == "~") {
+            passwd *userdetails = getpwuid(getuid());
+            directory = userdetails->pw_dir;
+        }
     }
 
     DIR *dirstream = opendir(directory.c_str());
@@ -49,39 +46,42 @@ void showlist (vector<string> words) {
     while(drt = readdir(dirstream))
         filenames.push_back(*drt);
 
-    if (flag2 == 0) {
+    if (flagl == 0) {
         for (int i=0; i<filenames.size(); i++) {
             string str = filenames[i].d_name;
-            if (flag1 == 0 && (str == "." || str == "..")) continue;
+            if (flaga == 0 && (str == "." || str == "..")) continue;
             cout << str << "  ";
         }
         cout << endl;
     }
 
-    if (flag2 == 1) {
+    if (flagl == 1) {
     for (int i=0; i<filenames.size(); i++) {
         string name = filenames[i].d_name;
-        if (flag1 == 0 && (name == "." || name == "..")) continue;
-        struct stat *statbuffer;
-        int result = stat(name.c_str(), statbuffer);
-        string permssion = getfilePermissions(statbuffer->st_mode);
-        nlink_t hard_links = statbuffer->st_nlink;
-        passwd *userdetails = getpwuid(statbuffer->st_uid);
+        if (flaga == 0 && (name == "." || name == "..")) continue;
+        struct stat statbuffer;
+        int result = stat(name.c_str(), &statbuffer);
+
+        string permission = getfilePermissions(statbuffer.st_mode);
+        nlink_t hard_links = statbuffer.st_nlink;
+        passwd *userdetails = getpwuid(statbuffer.st_uid);
         string user = userdetails->pw_name;
-        group *groupdetails = getgrgid(statbuffer->st_gid);
+        group *groupdetails = getgrgid(statbuffer.st_gid);
         string group = groupdetails->gr_name;
-        off_t size = statbuffer->st_size;
-        char time_buf[80];
-        // strftime(time_buf, sizeof(time_buf), "%b %d %H:%M"); // need to complete time
-        cout << permssion << " " << hard_links << " " << user << " " << group << " " << setw(10) << size 
-        << " " << name << endl;
+        off_t size = statbuffer.st_size;
+        char timebuf[64];
+        struct tm lt;
+        localtime_r(&statbuffer.st_mtime, &lt);
+        strftime(timebuf, sizeof(timebuf), "%b %d %H:%M", &lt);
+        printf("%s %ld %10s %10s %10ld %13s %s\n", permission.c_str(), hard_links, user.c_str(), 
+        group.c_str(), size, timebuf, name.c_str());
     }
 }
     closedir(dirstream);
 }
 
 string getfilePermissions(mode_t octalcode) {
-    char octpermissions[10];
+    char octpermissions[11];
     octpermissions[0] = (S_ISDIR(octalcode) ? 'd' : '-');
     octpermissions[1] = ((octalcode & S_IRUSR) ? 'r' : '-');
     octpermissions[2] = ((octalcode & S_IWUSR) ? 'w' : '-');
@@ -92,6 +92,7 @@ string getfilePermissions(mode_t octalcode) {
     octpermissions[7] = ((octalcode & S_IROTH) ? 'r' : '-');
     octpermissions[8] = ((octalcode & S_IWOTH) ? 'w' : '-');
     octpermissions[9] = ((octalcode & S_IXOTH) ? 'x' : '-');
+    octpermissions[10] = '\0';
     return octpermissions;
 }
 

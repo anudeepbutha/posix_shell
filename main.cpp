@@ -1,13 +1,16 @@
 #include <bits/stdc++.h>
-#include "foreback.h"
 #include <iostream>
-#include "changedir.h"
-#include "showlist.h"
 #include <pwd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "changedir.h"
+#include "foreback.h"
+#include "pinfo.h"
+#include "search.h"
+#include "showlist.h"
 
 using namespace std;
 
@@ -54,6 +57,10 @@ int main () {
             showlist(words);
         else if(words[0] == "gedit")
             foreback(words);
+        else if (words[0] == "pinfo")
+            process_info(words);
+        else if (words[0] == "search")
+            search(words);
 
         free(line_read);
     }
