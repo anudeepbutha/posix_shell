@@ -3,6 +3,7 @@
 
 #include <dirent.h>
 #include <iostream>
+#include <cstring>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <vector>
@@ -26,20 +27,31 @@ void search (vector<string> words) {
         cout << "False" << endl;
 }
 
-bool recursive_search (string directory, string name) {
+bool recursive_search (string directory, string fname) {
     DIR *dirstream = opendir(directory.c_str());
+    if(dirstream == NULL)
+        return false;
+
     struct dirent* drt;
-    while(drt = readdir(dirstream)) {
-        if (drt->d_name == name) 
+    while((drt = readdir(dirstream)) != NULL) {
+        if (fname == drt->d_name) {
+            closedir(dirstream);
             return true;
-        if (drt->d_name == "." || drt->d_name == "..")
+        }
+
+        if (strcmp(drt->d_name, ".") == 0 || strcmp(drt->d_name, "..") == 0)
             continue;
-        if (S_ISDIR(drt->d_type) == 1)
-        {
-            string dirpath = "./" + string(drt->d_name);
-            return recursive_search(dirpath, name);
+
+        string absPath = directory + "/" + drt->d_name;
+        struct stat st;
+        if (stat(absPath.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
+            if (recursive_search(absPath, fname)) {
+                closedir(dirstream);
+                return true;
+            }
         }
     }
+    closedir(dirstream);
     return false;
 }
 

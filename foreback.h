@@ -27,12 +27,11 @@ void foreback(vector<string> words) {
     }
     else if (child_pid > 0) {
         if (background) {
-            cout << "Background process running: " << child_pid << endl;
+            cout << child_pid << endl;
         }
         else {
             int status;
             waitpid(child_pid, &status, 0);
-            cout << "Process with id: " << child_pid << " is stopped" << endl;
         }
     }
     else {

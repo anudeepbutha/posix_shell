@@ -21,18 +21,31 @@ void showlist (vector<string> words) {
     string directory = ".";
     int flaga = 0, flagl = 0;
 
-    for (string str: words) {
-        if (str == "-a")
+    for (int i=1; i<words.size(); i++) {
+        if (words[i] == "-a")
             flaga = 1;
-        else if (str == "-l")
+        else if (words[i] == "-l")
             flagl = 1;
-        else if (str == "-al" ||str == "-la") {
+        else if (words[i] == "-al" || words[i] == "-la") {
             flaga = 1; flagl = 1;
         }
-        else if (str == "~") {
+        else if (words[i] == "~") {
             passwd *userdetails = getpwuid(getuid());
             directory = userdetails->pw_dir;
         }
+        else
+            directory = words[i];
+    }
+
+    struct stat st;
+    if (stat(directory.c_str(), &st) == -1) {
+        perror("ls");
+        return;
+    }
+
+    if (S_ISREG(st.st_mode) && flagl == 0) {
+        cout << directory << endl;
+        return;
     }
 
     DIR *dirstream = opendir(directory.c_str());

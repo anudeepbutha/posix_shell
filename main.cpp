@@ -1,8 +1,10 @@
 #include <bits/stdc++.h>
+#include <fcntl.h>
 #include <iostream>
 #include <pwd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -14,7 +16,14 @@
 
 using namespace std;
 
+void signalHandler (int signum) {
+    cout << endl << "Hello";
+}
+
 int main () {
+    // signal(SIGINT, signalHandler);
+    // signal(SIGINT, signalHandler);
+    // signal(SIGINT, signalHandler);
     passwd *userdetails = getpwuid(getuid());
     char* username = userdetails->pw_name;
 
@@ -55,21 +64,69 @@ int main () {
             cout << current_path << endl;
         else if (words[0] == "ls")
             showlist(words);
-        else if(words[0] == "gedit")
-            foreback(words);
         else if (words[0] == "pinfo")
             process_info(words);
         else if (words[0] == "search")
             search(words);
-
+        else if (words[0] == "-1")
+            raise(SIGINT);
+        else
+            foreback(words);
         free(line_read);
     }
     return 0;
 }
 
-        // stringstream ss(line_read);
-        // string s;
-        // vector<string> words;
-        // while (getline(ss, s, ' ')) 
-        //     words.push_back(s);
-        // if (words.size() == 0) continue;
+// int out_red= 0, in_red = 0;
+//         int outfd_dup = -1, infd_dup = -1;
+//         for (int i=0; i<words.size(); i++) {
+//             string filename;
+//             if (words[i] == ">") {
+//                 if (words.size() <= i+1) {
+//                     cout << "Invalid Arguments" << endl;
+//                     continue;
+//                 }
+//                 filename = words[i+1];
+//                 int openfd = open(filename.c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
+//                 if (openfd < 0) {
+//                     cout << "unable to open the file" << endl;
+//                     continue;
+//                 }
+//                 int fdcopy = dup(openfd);
+//                 words.erase(words.begin()+i, words.begin()+i+2);
+//                 out_red = 1; i-=1;
+//                 outfd_dup = dup(STDOUT_FILENO);
+//             }
+//             else if (words[i] == ">>") {
+//                 if (words.size() <= i+1) {
+//                     cout << "Invalid Arguments" << endl;
+//                     continue;
+//                 }
+//                 filename = words[i+1];
+//                 int openfd = open(filename.c_str(), O_CREAT | O_APPEND | O_WRONLY, 0644);
+//                 if (openfd < 0) {
+//                     cout << "unable to open the file" << endl;
+//                     continue;
+//                 }
+//                 int fdcopy = dup(openfd);
+//                 words.erase(words.begin()+i, words.begin()+i+2);
+//                 out_red = 1; i-=1;
+//                 outfd_dup = dup(STDOUT_FILENO);
+//             }
+//             else if (words[i] == "<") {
+//                 if (words.size() <= i+1) {
+//                     cout << "Invalid Arguments" << endl;
+//                     continue;
+//                 }
+//                 filename = words[i+1];
+//                 int openfd = open(filename.c_str(), O_RDONLY);
+//                 if (openfd < 0) {
+//                     cout << "unable to open the file" << endl;
+//                     continue;
+//                 }
+//                 int fdcopy = dup(openfd);
+//                 words.erase(words.begin()+i, words.begin()+i+2);
+//                 in_red = 1; i-=1;
+//                 infd_dup = dup(STDIN_FILENO);
+//             }
+//         }
