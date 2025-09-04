@@ -21,7 +21,7 @@ void showlist (vector<string> words) {
     string directory = ".";
     int flaga = 0, flagl = 0;
 
-    for (int i=1; i<words.size(); i++) {
+    for (size_t i=1; i<words.size(); i++) {
         if (words[i] == "-a")
             flaga = 1;
         else if (words[i] == "-l")
@@ -56,11 +56,11 @@ void showlist (vector<string> words) {
 
     struct dirent* drt;
     vector<dirent> filenames;
-    while(drt = readdir(dirstream))
+    while((drt = readdir(dirstream)))
         filenames.push_back(*drt);
 
     if (flagl == 0) {
-        for (int i=0; i<filenames.size(); i++) {
+        for (size_t i=0; i<filenames.size(); i++) {
             string str = filenames[i].d_name;
             if (flaga == 0 && (str == "." || str == "..")) continue;
             cout << str << "  ";
@@ -69,11 +69,12 @@ void showlist (vector<string> words) {
     }
 
     if (flagl == 1) {
-    for (int i=0; i<filenames.size(); i++) {
+    for (size_t i=0; i<filenames.size(); i++) {
         string name = filenames[i].d_name;
         if (flaga == 0 && (name == "." || name == "..")) continue;
         struct stat statbuffer;
         int result = stat(name.c_str(), &statbuffer);
+        if (result != 0) continue;
 
         string permission = getfilePermissions(statbuffer.st_mode);
         nlink_t hard_links = statbuffer.st_nlink;

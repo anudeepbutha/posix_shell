@@ -49,7 +49,7 @@ void change_directory (vector<string> words, char* home_path, char* current_path
 }
 
 void echo_print(vector<string> words) {
-    for (int i=1; i<words.size(); i++)
+    for (size_t i=1; i<words.size(); i++)
         cout << words[i] << " ";
     cout << endl;
 }
@@ -62,7 +62,7 @@ string split(char* buffer) {
         token = strtok(nullptr, "/");
     }
     string previous_path;
-    for(int i=0; i<path.size()-1; i++) {
+    for(size_t i=0; i<path.size()-1; i++) {
         previous_path.append("/");
         previous_path.append(path[i]);
     }
