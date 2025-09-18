@@ -14,11 +14,12 @@
 #include "history.h"
 #include "pinfo.h"
 #include "search.h"
+#include "signal_handle.h"
 #include "showlist.h"
 
 using namespace std;
 
-pid_t fg_pid = 0;
+pid_t child_pid = 0;
 
 char** command_suggestion(const char* text, int start, int end) {
     if (start == 0)
@@ -29,6 +30,8 @@ char** command_suggestion(const char* text, int start, int end) {
 
 int main () {
 
+    signal(SIGINT, sigint_handler);
+    signal(SIGTSTP, sigtstp_handler);
     passwd *userdetails = getpwuid(getuid());
     char* username = userdetails->pw_name;
     string homedir = userdetails->pw_dir;

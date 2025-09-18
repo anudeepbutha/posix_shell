@@ -8,6 +8,8 @@
 
 using namespace std;
 
+int childpid = -1;
+
 void foreback(vector<string> words) {
     vector<char*> args;
     bool background = (!words.empty() && words.back()=="&");
@@ -31,6 +33,7 @@ void foreback(vector<string> words) {
         }
         else {
             int status;
+            childpid = child_pid;
             waitpid(child_pid, &status, 0);
         }
     }
