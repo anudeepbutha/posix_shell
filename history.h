@@ -17,8 +17,8 @@ void print_history(vector<string> words) {
             cout << hist_list[i]->line << endl;
         return ;
     }
-    if (history_length > 10)
-        start = history_length - 10;
+    if (history_length > 20)
+        start = history_length - 20;
     for (int i = start; hist_list[i]; i++)
         cout << hist_list[i]->line << endl;
 }
