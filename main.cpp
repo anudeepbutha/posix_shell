@@ -67,10 +67,9 @@ int main() {
 
         line_read = readline(prompt.c_str());
         
-        if (line_read == NULL) { 
+        if (line_read == NULL) {
             cout << endl;
             write_history(histfile.c_str());
-            free(line_read);
             break;
         }
         
@@ -79,25 +78,31 @@ int main() {
         vector<string> commands = tokenize(line_read, ";");
         
         for (auto& cmd_str : commands) {
-            char* cmd_cstr = const_cast<char*>(cmd_str.c_str());
-
-            vector<string> pipe_parts = tokenize(cmd_cstr, "|");
+            size_t pipe_pos = cmd_str.find('|');
             
-            if (pipe_parts.size() > 1) {
+            if (pipe_pos != string::npos) {
                 vector<vector<string>> pipeline_cmds;
-                
-                for (auto& part : pipe_parts) {
+                size_t start = 0;
+                size_t pos = 0;
+                while ((pos = cmd_str.find('|', start)) != string::npos) {
+                    string part = cmd_str.substr(start, pos - start);
                     vector<string> words = tokenize(const_cast<char*>(part.c_str()), " \t");
                     if (words.size() > 0) {
                         pipeline_cmds.push_back(words);
                     }
+                    start = pos + 1;
+                }
+                string part = cmd_str.substr(start);
+                vector<string> words = tokenize(const_cast<char*>(part.c_str()), " \t");
+                if (words.size() > 0) {
+                    pipeline_cmds.push_back(words);
                 }
                 
                 if (pipeline_cmds.size() > 0) {
                     execute_pipeline(pipeline_cmds);
                 }
             } else {
-                vector<string> words = tokenize(cmd_cstr, " \t");
+                vector<string> words = tokenize(const_cast<char*>(cmd_str.c_str()), " \t");
                 if (words.size() > 0) {
                     execute_command(words, home_path, current_path);
                 }
@@ -136,6 +141,7 @@ void execute_command(vector<string>& words, char* home_path, char* current_path)
     string infile, outfile;
     int out_red = 0, in_red = 0, append = 0;
     int outfd_dup = -1, infd_dup = -1;
+
     for (size_t i = 0; i < words.size(); i++) {
         if (words[i] == ">") {
             if (words.size() <= i + 1) {
@@ -168,6 +174,7 @@ void execute_command(vector<string>& words, char* home_path, char* current_path)
             i -= 1;
         }
     }
+
     if (out_red == 1) {
         int flags;
         if (append == 1)
@@ -185,6 +192,7 @@ void execute_command(vector<string>& words, char* home_path, char* current_path)
             close(outfd);
         }
     }
+
     if (in_red == 1) {
         int infd = open(infile.c_str(), O_RDONLY);
         if (infd < 0) {
@@ -213,7 +221,21 @@ void execute_command(vector<string>& words, char* home_path, char* current_path)
         return;
     }
     
-    if (words[0] == "cd")
+    if (words[0] == "exit") {
+        if (out_red == 1) {
+            dup2(outfd_dup, STDOUT_FILENO);
+            close(outfd_dup);
+        }
+        if (in_red == 1) {
+            dup2(infd_dup, STDIN_FILENO);
+            close(infd_dup);
+        }
+
+        string histfile = string(getenv("HOME")) + "/.myshell_hist";
+        write_history(histfile.c_str());
+        exit(0);
+    }
+    else if (words[0] == "cd")
         change_directory(words, home_path, current_path);
     else if (words[0] == "echo")
         echo_print(words);
@@ -227,8 +249,7 @@ void execute_command(vector<string>& words, char* home_path, char* current_path)
         search(words);
     else if (words[0] == "history")
         print_history(words);
-    else if (words[0] == "exit" && words.size() == 1) {
-    } else
+    else
         foreback(words);
     if (out_red == 1) {
         dup2(outfd_dup, STDOUT_FILENO);
